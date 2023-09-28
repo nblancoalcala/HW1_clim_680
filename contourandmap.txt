@@ -1,0 +1,67 @@
+## Plotting Land Precipitation Monthly Mean
+
+import numpy as np
+import xarray as xr
+import matplotlib.pyplot as plt
+
+import cartopy.crs as ccrs
+import cartopy.mpl.ticker as cticker
+import cartopy.feature as feature
+from cartopy.util import add_cyclic_point
+
+path = '/home/nblancoa/clim_680_dataset//'
+fname = 'precip.mon.mean.2.5x2.5.nc'
+ds = xr.open_dataset(path+fname)
+ds
+
+ds_mean=ds.mean(dim='time')
+ds_mean
+
+## Original Contour Plot
+
+plt.contourf(ds_mean['precip'])
+plt.colorbar() 
+;
+
+## Final Map
+
+
+# Change the map projection and add titles.
+
+# Make the figure larger
+fig = plt.figure(figsize=(11,8.5))
+
+# Set the axes using the specified map projection
+ax=plt.axes(projection=ccrs.PlateCarree())
+
+# Add cyclic point to data
+data=ds_mean['precip']
+data, lons = add_cyclic_point(data, coord=ds['lon'])
+
+# Make a filled contour plot
+cs=ax.contourf(lons, ds['lat'], data,
+            transform = ccrs.PlateCarree(),cmap='coolwarm',extend='both')
+
+# Add coastlines
+ax.coastlines()
+
+# Add gridlines
+ax.gridlines()
+
+# Define the xticks for longitude
+ax.set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+lon_formatter = cticker.LongitudeFormatter()
+ax.xaxis.set_major_formatter(lon_formatter)
+
+# Define the yticks for latitude
+ax.set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+lat_formatter = cticker.LatitudeFormatter()
+ax.yaxis.set_major_formatter(lat_formatter)
+
+
+# Add colorbar
+cbar = plt.colorbar(cs,shrink=0.7,orientation='horizontal',label='Precipitation Anomaly')
+
+# Add title
+plt.title('NOAA Land Precipitation Monthly Mean Reconstructed')
+;
